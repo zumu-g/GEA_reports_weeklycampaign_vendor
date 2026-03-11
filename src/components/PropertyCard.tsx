@@ -11,45 +11,53 @@ export default function PropertyCard({ report }: PropertyCardProps) {
 
   return (
     <Link href={`/report/${report.id}`}>
-      <div className="bg-card-bg rounded-xl border border-border p-6 shadow-sm hover:shadow-lg hover:border-accent transition-all cursor-pointer">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <h3 className="font-bold text-lg">{report.propertyAddress}</h3>
-            <p className="text-sm text-muted">{report.vendorName}</p>
+      <div className="bg-white rounded-2xl border border-border-light p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer group">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-base text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+              {report.propertyAddress}
+            </h3>
+            <p className="text-sm text-muted mt-0.5">{report.vendorName}</p>
           </div>
-          <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+          <span className="text-xs bg-background-secondary text-foreground-secondary px-3 py-1 rounded-full font-medium ml-3 flex-shrink-0">
             {report.campaignType}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm text-muted">Agent: {report.agent}</span>
-          <span className="text-muted">|</span>
-          <span className="text-sm text-muted">{report.daysOnMarket} days on market</span>
+        {/* Meta */}
+        <div className="flex items-center gap-3 mb-5 text-xs text-muted">
+          <span>{report.agent}</span>
+          <span className="w-1 h-1 rounded-full bg-border" />
+          <span>{report.daysOnMarket} days on market</span>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 text-center">
-          <div>
-            <p className="text-xl font-bold">{totalViews.toLocaleString()}</p>
-            <p className="text-xs text-muted">Total Views</p>
+        {/* Stats grid */}
+        <div className="grid grid-cols-4 gap-3">
+          <div className="bg-background-secondary rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-foreground">{totalViews.toLocaleString()}</p>
+            <p className="text-[10px] text-muted font-medium uppercase tracking-wider mt-0.5">Views</p>
           </div>
-          <div>
-            <p className="text-xl font-bold">{totalEnquiries}</p>
-            <p className="text-xs text-muted">Enquiries</p>
+          <div className="bg-background-secondary rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-foreground">{totalEnquiries}</p>
+            <p className="text-[10px] text-muted font-medium uppercase tracking-wider mt-0.5">Enquiries</p>
           </div>
-          <div>
-            <p className="text-xl font-bold">{report.openHomeAttendees}</p>
-            <p className="text-xs text-muted">Open Home</p>
+          <div className="bg-background-secondary rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-foreground">{report.openHomeAttendees}</p>
+            <p className="text-[10px] text-muted font-medium uppercase tracking-wider mt-0.5">Open Home</p>
           </div>
-          <div>
-            <p className="text-xl font-bold">{report.privateInspections}</p>
-            <p className="text-xs text-muted">Private Insp.</p>
+          <div className="bg-background-secondary rounded-xl p-3 text-center">
+            <p className="text-lg font-bold text-foreground">{report.privateInspections}</p>
+            <p className="text-[10px] text-muted font-medium uppercase tracking-wider mt-0.5">Private</p>
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
-          <span className="text-sm font-semibold text-primary">{report.askingPrice}</span>
-          <span className="text-xs text-accent font-medium">View Full Report →</span>
+        {/* Footer */}
+        <div className="mt-5 pt-4 border-t border-border-light flex items-center justify-between">
+          <span className="text-sm font-semibold text-foreground">{report.askingPrice}</span>
+          <span className="text-xs text-primary font-medium group-hover:translate-x-0.5 transition-transform duration-200">
+            View Report →
+          </span>
         </div>
       </div>
     </Link>

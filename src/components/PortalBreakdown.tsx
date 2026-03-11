@@ -5,59 +5,76 @@ interface PortalBreakdownProps {
 }
 
 export default function PortalBreakdown({ report }: PortalBreakdownProps) {
+  const reaTotal = report.reaViews + report.reaEnquiries + report.reaSaves;
+  const domainTotal = report.domainViews + report.domainEnquiries + report.domainSaves;
+  const maxTotal = Math.max(reaTotal, domainTotal, 1);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* realestate.com.au */}
-      <div className="bg-card-bg rounded-xl border border-border p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <h3 className="font-bold text-lg">realestate.com.au</h3>
+      <div className="bg-white rounded-2xl border border-border-light p-6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#e4002b]" />
+          <h3 className="font-semibold text-sm text-foreground">realestate.com.au</h3>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.reaViews.toLocaleString()}</p>
-            <p className="text-sm text-muted">Property Views</p>
+        <div className="space-y-4">
+          <MetricRow label="Views" value={report.reaViews} />
+          <MetricRow label="Enquiries" value={report.reaEnquiries} />
+          <MetricRow label="Saves" value={report.reaSaves} />
+          <MetricRow label="Search Appearances" value={report.reaSearchAppearances} />
+        </div>
+        {/* Activity bar */}
+        <div className="mt-5 pt-4 border-t border-border-light">
+          <div className="flex items-center justify-between text-xs text-muted mb-2">
+            <span>Activity</span>
+            <span>{reaTotal.toLocaleString()} total</span>
           </div>
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.reaEnquiries}</p>
-            <p className="text-sm text-muted">Enquiries</p>
-          </div>
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.reaSaves}</p>
-            <p className="text-sm text-muted">Saves / Shortlists</p>
-          </div>
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.reaSearchAppearances.toLocaleString()}</p>
-            <p className="text-sm text-muted">Search Appearances</p>
+          <div className="w-full bg-background-secondary rounded-full h-1.5">
+            <div
+              className="h-1.5 rounded-full bg-[#e4002b] transition-all duration-500"
+              style={{ width: `${(reaTotal / maxTotal) * 100}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* domain.com.au */}
-      <div className="bg-card-bg rounded-xl border border-border p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-3 h-3 rounded-full bg-green-600"></div>
-          <h3 className="font-bold text-lg">domain.com.au</h3>
+      <div className="bg-white rounded-2xl border border-border-light p-6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#00b14f]" />
+          <h3 className="font-semibold text-sm text-foreground">domain.com.au</h3>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.domainViews.toLocaleString()}</p>
-            <p className="text-sm text-muted">Property Views</p>
+        <div className="space-y-4">
+          <MetricRow label="Views" value={report.domainViews} />
+          <MetricRow label="Enquiries" value={report.domainEnquiries} />
+          <MetricRow label="Saves" value={report.domainSaves} />
+          <MetricRow label="Search Appearances" value={report.domainSearchAppearances} />
+        </div>
+        {/* Activity bar */}
+        <div className="mt-5 pt-4 border-t border-border-light">
+          <div className="flex items-center justify-between text-xs text-muted mb-2">
+            <span>Activity</span>
+            <span>{domainTotal.toLocaleString()} total</span>
           </div>
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.domainEnquiries}</p>
-            <p className="text-sm text-muted">Enquiries</p>
-          </div>
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.domainSaves}</p>
-            <p className="text-sm text-muted">Saves / Shortlists</p>
-          </div>
-          <div className="bg-background rounded-lg p-4">
-            <p className="text-2xl font-bold">{report.domainSearchAppearances.toLocaleString()}</p>
-            <p className="text-sm text-muted">Search Appearances</p>
+          <div className="w-full bg-background-secondary rounded-full h-1.5">
+            <div
+              className="h-1.5 rounded-full bg-[#00b14f] transition-all duration-500"
+              style={{ width: `${(domainTotal / maxTotal) * 100}%` }}
+            />
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function MetricRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-muted">{label}</span>
+      <span className="text-sm font-semibold text-foreground tabular-nums">
+        {value.toLocaleString()}
+      </span>
     </div>
   );
 }

@@ -12,53 +12,58 @@ interface InspectionHistoryProps {
 
 export default function InspectionHistory({ inspections }: InspectionHistoryProps) {
   return (
-    <div className="bg-card-bg rounded-xl border border-border p-6 shadow-sm mb-8">
-      <h2 className="text-lg font-bold mb-4">Inspection History</h2>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-2 pr-4 font-medium text-muted">Date</th>
-              <th className="text-left py-2 pr-4 font-medium text-muted">Type</th>
-              <th className="text-center py-2 pr-4 font-medium text-muted">Groups</th>
-              <th className="text-left py-2 pr-4 font-medium text-muted">Interest</th>
-              <th className="text-left py-2 font-medium text-muted">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inspections.map((inspection, i) => (
-              <tr key={i} className="border-b border-border/50">
-                <td className="py-2.5 pr-4 whitespace-nowrap">{inspection.date}</td>
-                <td className="py-2.5 pr-4">
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      inspection.type.toLowerCase().includes("open")
-                        ? "bg-primary/10 text-primary"
-                        : "bg-accent/20 text-accent"
-                    }`}
-                  >
-                    {inspection.type}
-                  </span>
-                </td>
-                <td className="py-2.5 pr-4 text-center font-semibold">{inspection.groups}</td>
-                <td className="py-2.5 pr-4">
-                  <span
-                    className={`text-xs font-medium ${
-                      inspection.interestLevel.toLowerCase().includes("high") || inspection.interestLevel.toLowerCase().includes("strong")
-                        ? "text-success"
-                        : inspection.interestLevel.toLowerCase().includes("low")
-                          ? "text-danger"
-                          : "text-warning"
-                    }`}
-                  >
-                    {inspection.interestLevel}
-                  </span>
-                </td>
-                <td className="py-2.5 text-muted">{inspection.notes}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="bg-white rounded-2xl border border-border-light p-6 mb-6">
+      <h2 className="text-base font-semibold text-foreground mb-5">Inspection History</h2>
+      <div className="space-y-3">
+        {inspections.map((inspection, i) => (
+          <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-background-secondary">
+            {/* Date badge */}
+            <div className="flex-shrink-0 text-center min-w-[44px]">
+              <p className="text-lg font-bold text-foreground leading-none">
+                {inspection.date.split(" ")[0]}
+              </p>
+              <p className="text-[10px] text-muted uppercase font-medium mt-0.5">
+                {inspection.date.split(" ").slice(1).join(" ") || ""}
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                    inspection.type.toLowerCase().includes("open")
+                      ? "bg-primary-soft text-primary"
+                      : "bg-warning-soft text-warning"
+                  }`}
+                >
+                  {inspection.type}
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {inspection.groups} group{inspection.groups !== 1 ? "s" : ""}
+                </span>
+              </div>
+              {inspection.notes && (
+                <p className="text-sm text-muted mt-1">{inspection.notes}</p>
+              )}
+            </div>
+
+            {/* Interest badge */}
+            <div className="flex-shrink-0">
+              <span
+                className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  inspection.interestLevel.toLowerCase().includes("high") || inspection.interestLevel.toLowerCase().includes("strong")
+                    ? "bg-success-soft text-success"
+                    : inspection.interestLevel.toLowerCase().includes("low")
+                      ? "bg-danger-soft text-danger"
+                      : "bg-warning-soft text-warning"
+                }`}
+              >
+                {inspection.interestLevel}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
