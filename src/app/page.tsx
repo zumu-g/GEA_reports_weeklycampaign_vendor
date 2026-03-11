@@ -40,8 +40,9 @@ export default async function Dashboard() {
       <main className="max-w-5xl mx-auto px-6 py-12">
         {/* Hero */}
         <div className="mb-12">
+          <p className="text-xs text-muted uppercase tracking-widest font-medium mb-2">Agent View</p>
           <h2 className="text-4xl font-bold tracking-tight text-foreground">
-            Campaign Dashboard
+            All Campaigns
           </h2>
           <p className="text-foreground-secondary text-lg mt-2">
             {today}

@@ -9,7 +9,6 @@ import { ChartIllustration, PeopleIllustration, SearchIllustration, HeartIllustr
 import { getProperty } from "@/lib/markdown-loader";
 import { propertyToVendorReport } from "@/lib/data-adapter";
 import { mockReports } from "@/lib/mock-data";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -32,79 +31,125 @@ export default async function ReportPage({ params }: PageProps) {
   const totalViews = report.reaViews + report.domainViews;
   const totalEnquiries = report.reaEnquiries + report.domainEnquiries;
   const totalSaves = report.reaSaves + report.domainSaves;
+  const totalInspections = report.openHomeAttendees + report.privateInspections;
+
+  // Calculate days on market display
+  const daysLabel = report.daysOnMarket > 0
+    ? `${report.daysOnMarket} days on market`
+    : "Just listed";
+
+  // Get owner first name for greeting
+  const ownerFirstName = report.vendorName?.split(" ")[0] || "";
+
+  const today = new Date().toLocaleDateString("en-AU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        {/* Back link */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover transition-colors duration-200 mb-8"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Dashboard
-        </Link>
+      {/* ═══════════════════ HERO ═══════════════════ */}
+      <section className="bg-background-secondary border-b border-border-light">
+        <div className="max-w-5xl mx-auto px-6 pt-12 pb-14">
+          {/* Greeting */}
+          <p className="text-sm text-muted mb-1">{today}</p>
+          {ownerFirstName && (
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-1">
+              Hi {ownerFirstName}
+            </h1>
+          )}
+          <p className="text-foreground-secondary text-base mb-8">
+            Here&apos;s the latest on your campaign.
+          </p>
 
-        {/* Property header */}
-        <div className="mb-10">
-          <div className="flex items-start gap-5">
-            <div className="w-14 h-14 bg-background-secondary rounded-2xl flex items-center justify-center flex-shrink-0">
-              <HouseIllustration className="w-7 h-7 text-foreground" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                {report.propertyAddress}
-              </h1>
-              <div className="flex flex-wrap items-center gap-3 mt-2">
-                <span className="text-sm text-foreground-secondary">
-                  {report.vendorName}
-                </span>
-                <span className="w-1 h-1 rounded-full bg-border" />
-                <span className="text-sm text-muted">{report.agent}</span>
-                {report.listingDate && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-border" />
-                    <span className="text-sm text-muted">
-                      Listed {new Date(report.listingDate).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
+          {/* Property card */}
+          <div className="bg-white rounded-2xl border border-border-light p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+              {/* Left: Address & details */}
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 bg-background-secondary rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <HouseIllustration className="w-7 h-7 text-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+                    {report.propertyAddress}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <span className="text-xs bg-background-secondary text-foreground-secondary px-3 py-1 rounded-full font-medium">
+                      {report.campaignType || "TBC"}
                     </span>
-                  </>
-                )}
+                    <span className="text-xs text-muted">{daysLabel}</span>
+                  </div>
+                  {report.listingDate && (
+                    <p className="text-xs text-muted mt-2">
+                      Listed {new Date(report.listingDate).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
+                      {report.agent && <> &middot; Agent: {report.agent}</>}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-3 mt-3">
-                <span className="text-xl font-bold text-foreground">
-                  {report.askingPrice || "Price TBC"}
-                </span>
-                <span className="text-xs bg-background-secondary text-foreground-secondary px-3 py-1 rounded-full font-medium">
-                  {report.campaignType || "TBC"}
-                </span>
+
+              {/* Right: Price */}
+              <div className="md:text-right flex-shrink-0">
+                <p className="text-sm text-muted mb-1">Price Guide</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+                  {report.askingPrice || "TBC"}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick stats bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8 pt-6 border-t border-border-light">
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">{totalViews.toLocaleString()}</p>
+                <p className="text-[11px] text-muted font-medium uppercase tracking-wider mt-1">Online Views</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">{totalEnquiries}</p>
+                <p className="text-[11px] text-muted font-medium uppercase tracking-wider mt-1">Enquiries</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">{totalSaves}</p>
+                <p className="text-[11px] text-muted font-medium uppercase tracking-wider mt-1">Saves</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">{totalInspections}</p>
+                <p className="text-[11px] text-muted font-medium uppercase tracking-wider mt-1">Inspections</p>
               </div>
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ═══════════════════ CONTENT ═══════════════════ */}
+      <main className="max-w-5xl mx-auto px-6 py-10">
 
         {/* Latest update banner */}
         {property?.latestUpdate && (
-          <div className="bg-primary-soft rounded-2xl px-5 py-4 mb-8">
+          <div className="bg-primary-soft rounded-2xl px-5 py-4 mb-8 flex items-start gap-3">
+            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+            </div>
             <p className="text-sm text-primary font-medium">{property.latestUpdate}</p>
           </div>
         )}
 
-        {/* Week ending + days on market */}
+        {/* Week context */}
         {report.weekEnding && (
-          <div className="flex items-center gap-4 mb-8 text-sm">
-            <span className="text-foreground font-medium">
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-foreground">
+              Weekly Performance
+            </h3>
+            <p className="text-sm text-muted mt-0.5">
               Week ending {new Date(report.weekEnding).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
-            </span>
-            <span className="w-1 h-1 rounded-full bg-border" />
-            <span className="text-muted">{report.daysOnMarket} days on market</span>
+            </p>
           </div>
         )}
 
-        {/* Key metrics */}
+        {/* Detailed metrics */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
           <StatCard
             label="Total Views"
@@ -135,8 +180,8 @@ export default async function ReportPage({ params }: PageProps) {
 
         {/* Portal breakdown */}
         {(report.reaViews > 0 || report.domainViews > 0) && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Portal Breakdown</h2>
+          <div className="mb-10">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Where buyers are finding you</h3>
             <PortalBreakdown report={report} />
           </div>
         )}
@@ -151,31 +196,33 @@ export default async function ReportPage({ params }: PageProps) {
           <InspectionHistory inspections={property.inspections} />
         )}
 
-        {/* Inspections summary */}
+        {/* Inspections overview */}
         <div className="bg-white rounded-2xl border border-border-light p-6 mb-8">
-          <h2 className="text-base font-semibold text-foreground mb-5">Inspections Overview</h2>
+          <h3 className="text-base font-semibold text-foreground mb-5">Inspections Overview</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-background-secondary rounded-2xl p-5 text-center">
+            <div className="bg-background-secondary rounded-2xl p-6 text-center">
               <PeopleIllustration className="w-8 h-8 text-muted mx-auto mb-3" />
               <p className="text-3xl font-bold text-foreground">{report.openHomeAttendees}</p>
               <p className="text-xs text-muted mt-1 font-medium">Open Home Groups</p>
             </div>
-            <div className="bg-background-secondary rounded-2xl p-5 text-center">
+            <div className="bg-background-secondary rounded-2xl p-6 text-center">
               <SearchIllustration className="w-8 h-8 text-muted mx-auto mb-3" />
               <p className="text-3xl font-bold text-foreground">{report.privateInspections}</p>
               <p className="text-xs text-muted mt-1 font-medium">Private Inspections</p>
             </div>
-            <div className="bg-background-secondary rounded-2xl p-5 text-center">
+            <div className="bg-background-secondary rounded-2xl p-6 text-center">
               <HouseIllustration className="w-8 h-8 text-muted mx-auto mb-3" />
-              <p className="text-3xl font-bold text-foreground">{report.openHomeAttendees + report.privateInspections}</p>
+              <p className="text-3xl font-bold text-foreground">{totalInspections}</p>
               <p className="text-xs text-muted mt-1 font-medium">Total Viewings</p>
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="border-t border-border-light mt-20 py-8 text-center">
-        <p className="text-xs text-muted">Grants Estate Agents</p>
+      <footer className="border-t border-border-light mt-10 py-8 text-center">
+        <p className="text-xs text-muted">
+          Grants Estate Agents &middot; Your campaign, updated live
+        </p>
       </footer>
 
       <Chat messages={report.messages} vendorName={report.vendorName} />
