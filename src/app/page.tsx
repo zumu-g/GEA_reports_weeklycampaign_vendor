@@ -1,10 +1,19 @@
 import Header from "@/components/Header";
 import StatCard from "@/components/StatCard";
 import PropertyCard from "@/components/PropertyCard";
+import { getAllProperties } from "@/lib/markdown-loader";
+import { propertyToVendorReport } from "@/lib/data-adapter";
 import { mockReports } from "@/lib/mock-data";
 
-export default function Dashboard() {
-  const reports = mockReports;
+export const dynamic = "force-dynamic";
+
+export default async function Dashboard() {
+  // Load properties from markdown files
+  const properties = await getAllProperties();
+  const markdownReports = properties.map(propertyToVendorReport);
+
+  // Combine: markdown properties first, then mock data as fallback demo
+  const reports = markdownReports.length > 0 ? markdownReports : mockReports;
 
   const totalReaViews = reports.reduce((sum, r) => sum + r.reaViews, 0);
   const totalDomainViews = reports.reduce((sum, r) => sum + r.domainViews, 0);
@@ -19,6 +28,12 @@ export default function Dashboard() {
     0
   );
 
+  const today = new Date().toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -26,9 +41,9 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Week heading */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold">Weekly Summary</h2>
+          <h2 className="text-2xl font-bold">Campaign Dashboard</h2>
           <p className="text-muted text-sm mt-1">
-            Week ending 1 March 2026 &middot; {reports.length} active listings
+            {today} &middot; {reports.length} active listing{reports.length !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -36,10 +51,10 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
           <StatCard label="REA Views" value={totalReaViews} subtitle="realestate.com.au" />
           <StatCard label="Domain Views" value={totalDomainViews} subtitle="domain.com.au" />
-          <StatCard label="Total Enquiries" value={totalEnquiries} trend="up" subtitle="+12% vs last week" />
+          <StatCard label="Total Enquiries" value={totalEnquiries} />
           <StatCard label="Open Home" value={totalOpenHome} subtitle="Total attendees" />
           <StatCard label="Private Insp." value={totalPrivate} subtitle="By appointment" />
-          <StatCard label="Saves / Shortlists" value={totalSaves} trend="up" subtitle="+8% vs last week" />
+          <StatCard label="Saves / Shortlists" value={totalSaves} />
         </div>
 
         {/* Property list */}

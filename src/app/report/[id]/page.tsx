@@ -3,8 +3,14 @@ import Header from "@/components/Header";
 import StatCard from "@/components/StatCard";
 import PortalBreakdown from "@/components/PortalBreakdown";
 import Chat from "@/components/Chat";
+import ChecklistSection from "@/components/ChecklistSection";
+import InspectionHistory from "@/components/InspectionHistory";
+import { getProperty } from "@/lib/markdown-loader";
+import { propertyToVendorReport } from "@/lib/data-adapter";
 import { mockReports } from "@/lib/mock-data";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -12,7 +18,12 @@ interface PageProps {
 
 export default async function ReportPage({ params }: PageProps) {
   const { id } = await params;
-  const report = mockReports.find((r) => r.id === id);
+
+  // Try markdown first (id = slug), then fall back to mock data
+  const property = await getProperty(id);
+  const report = property
+    ? propertyToVendorReport(property)
+    : mockReports.find((r) => r.id === id);
 
   if (!report) {
     notFound();
@@ -29,7 +40,7 @@ export default async function ReportPage({ params }: PageProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back link */}
         <Link href="/" className="text-sm text-primary hover:text-primary-light mb-6 inline-block">
-          ← Back to Dashboard
+          &larr; Back to Dashboard
         </Link>
 
         {/* Property header */}
@@ -41,25 +52,37 @@ export default async function ReportPage({ params }: PageProps) {
                 Vendor: <span className="font-medium text-foreground">{report.vendorName}</span>
               </p>
               <p className="text-muted text-sm">
-                Agent: {report.agent} &middot; Listed {new Date(report.listingDate).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
+                Agent: {report.agent}
+                {report.listingDate && (
+                  <> &middot; Listed {new Date(report.listingDate).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</>
+                )}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-primary">{report.askingPrice}</p>
+              <p className="text-2xl font-bold text-primary">{report.askingPrice || "Price TBC"}</p>
               <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
-                {report.campaignType}
+                {report.campaignType || "TBC"}
               </span>
             </div>
           </div>
         </div>
 
+        {/* Latest update */}
+        {property?.latestUpdate && (
+          <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-6">
+            <p className="text-sm font-medium text-foreground">{property.latestUpdate}</p>
+          </div>
+        )}
+
         {/* Week ending */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold">
-            Week Ending {new Date(report.weekEnding).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
-          </h2>
-          <p className="text-sm text-muted">{report.daysOnMarket} days on market</p>
-        </div>
+        {report.weekEnding && (
+          <div className="mb-6">
+            <h2 className="text-lg font-bold">
+              Week Ending {new Date(report.weekEnding).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
+            </h2>
+            <p className="text-sm text-muted">{report.daysOnMarket} days on market</p>
+          </div>
+        )}
 
         {/* Key metrics */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
@@ -71,12 +94,24 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         {/* Portal breakdown */}
-        <div className="mb-8">
-          <h2 className="text-lg font-bold mb-4">Portal Breakdown</h2>
-          <PortalBreakdown report={report} />
-        </div>
+        {(report.reaViews > 0 || report.domainViews > 0) && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold mb-4">Portal Breakdown</h2>
+            <PortalBreakdown report={report} />
+          </div>
+        )}
 
-        {/* Open home & inspections summary */}
+        {/* Campaign checklist - markdown properties only */}
+        {property && property.checklist.length > 0 && (
+          <ChecklistSection checklist={property.checklist} />
+        )}
+
+        {/* Inspection history - markdown properties only */}
+        {property && property.inspections.length > 0 && (
+          <InspectionHistory inspections={property.inspections} />
+        )}
+
+        {/* Inspections summary */}
         <div className="bg-card-bg rounded-xl border border-border p-6 shadow-sm mb-8">
           <h2 className="text-lg font-bold mb-4">Inspections Summary</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
