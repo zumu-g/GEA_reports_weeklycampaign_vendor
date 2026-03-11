@@ -19,7 +19,24 @@ export interface PropertyData {
   latestUpdate: string;
   analytics: AnalyticsRow[];
   inspections: InspectionRow[];
+  offers: OfferRow[];
+  targets: WeeklyTargets;
   communications: CommunicationRow[];
+}
+
+export interface OfferRow {
+  date: string;
+  buyer: string;
+  amount: string;
+  conditions: string;
+  status: string;
+  notes: string;
+}
+
+export interface WeeklyTargets {
+  views: number;
+  enquiries: number;
+  inspections: number;
 }
 
 export interface AnalyticsRow {
@@ -180,6 +197,34 @@ function parseCommunicationsTable(content: string): CommunicationRow[] {
     }));
 }
 
+function parseOffersTable(content: string): OfferRow[] {
+  const offersSection = content.split('## Offers Received')[1];
+  if (!offersSection) return [];
+  const rows = parseMarkdownTable('## Offers Received' + offersSection, 'Date');
+  return rows
+    .filter(r => r['Date'] && r['Date'].trim() !== '')
+    .map(r => ({
+      date: r['Date'] || '',
+      buyer: r['Buyer'] || '',
+      amount: r['Amount'] || '',
+      conditions: r['Conditions'] || '',
+      status: r['Status'] || '',
+      notes: r['Notes'] || '',
+    }));
+}
+
+function parseWeeklyTargets(content: string): WeeklyTargets {
+  const defaults = { views: 0, enquiries: 0, inspections: 0 };
+  const viewsMatch = content.match(/\*\*Views Target:\*\*\s*(\d+)/);
+  const enqMatch = content.match(/\*\*Enquiries Target:\*\*\s*(\d+)/);
+  const inspMatch = content.match(/\*\*Inspections Target:\*\*\s*(\d+)/);
+  return {
+    views: viewsMatch ? parseInt(viewsMatch[1], 10) : defaults.views,
+    enquiries: enqMatch ? parseInt(enqMatch[1], 10) : defaults.enquiries,
+    inspections: inspMatch ? parseInt(inspMatch[1], 10) : defaults.inspections,
+  };
+}
+
 function parseAddress(content: string): string {
   const match = content.match(/^# (.+)/m);
   return match ? match[1].trim() : '';
@@ -235,6 +280,8 @@ export async function getProperty(slug: string): Promise<PropertyData | null> {
       latestUpdate: parseLatestUpdate(content),
       analytics: parseAnalyticsTable(content),
       inspections: parseInspectionsTable(content),
+      offers: parseOffersTable(content),
+      targets: parseWeeklyTargets(content),
       communications: parseCommunicationsTable(content),
     };
   } catch {

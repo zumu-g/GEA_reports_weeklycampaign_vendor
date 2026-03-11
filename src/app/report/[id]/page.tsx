@@ -5,6 +5,8 @@ import PortalBreakdown from "@/components/PortalBreakdown";
 import Chat from "@/components/Chat";
 import ChecklistSection from "@/components/ChecklistSection";
 import InspectionHistory from "@/components/InspectionHistory";
+import OffersReceived from "@/components/OffersReceived";
+import WeeklyTargets from "@/components/WeeklyTargets";
 import { ChartIllustration, PeopleIllustration, SearchIllustration, HeartIllustration, HouseIllustration } from "@/components/Illustrations";
 import { getProperty } from "@/lib/markdown-loader";
 import { propertyToVendorReport } from "@/lib/data-adapter";
@@ -137,6 +139,35 @@ export default async function ReportPage({ params }: PageProps) {
           </div>
         )}
 
+        {/* Weekly targets with running totals */}
+        {property && property.targets && (
+          (() => {
+            const latest = property.analytics[0];
+            const cumViews = property.analytics.reduce((s, a) => s + a.reaViews + a.domainViews, 0);
+            const cumEnquiries = property.analytics.reduce((s, a) => s + a.reaEnquiries + a.domainEnquiries, 0);
+            const cumInspections = property.inspections.reduce((s, i) => s + i.groups, 0);
+            const listedDate = property.listed ? new Date(property.listed) : new Date();
+            const weeksElapsed = Math.max(1, Math.ceil((Date.now() - listedDate.getTime()) / (7 * 24 * 60 * 60 * 1000)));
+
+            return (
+              <WeeklyTargets
+                targets={property.targets}
+                actual={{
+                  views: latest ? latest.reaViews + latest.domainViews : 0,
+                  enquiries: latest ? latest.reaEnquiries + latest.domainEnquiries : 0,
+                  inspections: property.inspections.length > 0 ? property.inspections[0].groups : 0,
+                }}
+                cumulative={{
+                  views: cumViews,
+                  enquiries: cumEnquiries,
+                  inspections: cumInspections,
+                }}
+                weeksElapsed={weeksElapsed}
+              />
+            );
+          })()
+        )}
+
         {/* Week context */}
         {report.weekEnding && (
           <div className="mb-8">
@@ -184,6 +215,11 @@ export default async function ReportPage({ params }: PageProps) {
             <h3 className="text-lg font-semibold text-foreground mb-4">Where buyers are finding you</h3>
             <PortalBreakdown report={report} />
           </div>
+        )}
+
+        {/* Offers received */}
+        {property && (
+          <OffersReceived offers={property.offers} />
         )}
 
         {/* Campaign checklist */}
