@@ -18,8 +18,8 @@ export default function Chat({ messages: initialMessages, vendorName }: ChatProp
 
     const msg: ChatMessage = {
       id: `m${Date.now()}`,
-      sender: "Stuart Grant",
-      senderRole: "agent",
+      sender: vendorName,
+      senderRole: "vendor",
       message: newMessage.trim(),
       timestamp: new Date().toISOString(),
     };
@@ -51,8 +51,8 @@ export default function Chat({ messages: initialMessages, vendorName }: ChatProp
           {/* Header */}
           <div className="bg-background-secondary px-5 py-3.5 flex items-center justify-between border-b border-border-light">
             <div>
-              <p className="font-semibold text-sm text-foreground">{vendorName}</p>
-              <p className="text-[11px] text-muted">Campaign Discussion</p>
+              <p className="font-semibold text-sm text-foreground">Stuart Grant</p>
+              <p className="text-[11px] text-muted">Your Agent · Grants Estate Agents</p>
             </div>
             <button
               onClick={() => setIsOpen(false)}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeAnalyticsFile } from '@/lib/markdown-loader';
+import { queueNotification } from '@/lib/notification-queue';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,13 +14,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const v = Number(views) || 0;
+    const e = Number(enquiries) || 0;
+    const s = Number(saves) || 0;
+
     const filePath = await writeAnalyticsFile(property, {
       source,
       weekEnding,
-      views: Number(views) || 0,
-      enquiries: Number(enquiries) || 0,
-      saves: Number(saves) || 0,
+      views: v,
+      enquiries: e,
+      saves: s,
       searchAppearances: Number(searchAppearances) || 0,
+    });
+
+    // Queue notification for vendor
+    await queueNotification(property, {
+      type: 'analytics_update',
+      title: `New stats: ${v} views, ${e} enquiries (${source}, week ${weekEnding})`,
+      data: { source, weekEnding, views: v, enquiries: e, saves: s },
     });
 
     return NextResponse.json({

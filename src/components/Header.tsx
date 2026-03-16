@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 
-export default function Header() {
+interface HeaderProps {
+  rightSlot?: React.ReactNode;
+}
+
+export default function Header({ rightSlot }: HeaderProps) {
   return (
     <header className="bg-white/80 backdrop-blur-xl border-b border-border-light sticky top-0 z-40">
       <div className="max-w-5xl mx-auto px-6">
@@ -15,11 +19,9 @@ export default function Header() {
               Vendor Portal
             </span>
           </Link>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/" className="text-muted hover:text-foreground transition-colors duration-200">
-              Dashboard
-            </Link>
-          </nav>
+          <div className="flex items-center gap-3">
+            {rightSlot}
+          </div>
         </div>
       </div>
     </header>

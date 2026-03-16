@@ -15,6 +15,7 @@ export interface PropertyData {
   priceGuide: string;
   campaignType: string;
   agent: string;
+  heroImage: string;
   checklist: { task: string; done: boolean }[];
   latestUpdate: string;
   analytics: AnalyticsRow[];
@@ -22,6 +23,10 @@ export interface PropertyData {
   offers: OfferRow[];
   targets: WeeklyTargets;
   communications: CommunicationRow[];
+  feedback: FeedbackRow[];
+  documents: DocumentRow[];
+  justListed: NearbyListingRow[];
+  justSold: NearbyListingRow[];
 }
 
 export interface OfferRow {
@@ -61,6 +66,30 @@ export interface CommunicationRow {
   date: string;
   type: string;
   summary: string;
+}
+
+export interface FeedbackRow {
+  date: string;
+  buyer: string;
+  sentiment: string;
+  comments: string;
+}
+
+export interface DocumentRow {
+  name: string;
+  category: string;
+  status: string;
+  url: string;
+}
+
+export interface NearbyListingRow {
+  address: string;
+  price: string;
+  type: string;
+  date: string;
+  beds: string;
+  baths: string;
+  cars: string;
 }
 
 export interface AnalyticsDetail {
@@ -225,6 +254,56 @@ function parseWeeklyTargets(content: string): WeeklyTargets {
   };
 }
 
+function parseFeedbackTable(content: string): FeedbackRow[] {
+  const feedbackSection = content.split('## Buyer Feedback')[1];
+  if (!feedbackSection) return [];
+  const rows = parseMarkdownTable('## Buyer Feedback' + feedbackSection, 'Date');
+  return rows
+    .filter(r => r['Date'] && r['Date'].trim() !== '')
+    .map(r => ({
+      date: r['Date'] || '',
+      buyer: r['Buyer'] || '',
+      sentiment: r['Sentiment'] || '',
+      comments: r['Comments'] || '',
+    }));
+}
+
+function parseDocumentsTable(content: string): DocumentRow[] {
+  const docsSection = content.split('## Documents')[1];
+  if (!docsSection) return [];
+  const rows = parseMarkdownTable('## Documents' + docsSection, 'Name');
+  return rows
+    .filter(r => r['Name'] && r['Name'].trim() !== '')
+    .map(r => ({
+      name: r['Name'] || '',
+      category: r['Category'] || '',
+      status: r['Status'] || '',
+      url: r['URL'] || '',
+    }));
+}
+
+function parseNearbyTable(content: string, sectionHeader: string): NearbyListingRow[] {
+  const section = content.split(sectionHeader)[1];
+  if (!section) return [];
+  const rows = parseMarkdownTable(sectionHeader + section, 'Address');
+  return rows
+    .filter(r => r['Address'] && r['Address'].trim() !== '')
+    .map(r => ({
+      address: r['Address'] || '',
+      price: r['Price'] || '',
+      type: r['Type'] || '',
+      date: r['Date'] || '',
+      beds: r['Beds'] || '',
+      baths: r['Baths'] || '',
+      cars: r['Cars'] || '',
+    }));
+}
+
+function parseHeroImage(content: string): string {
+  const match = content.match(/\*\*Hero Image:\*\*\s*(.+)/);
+  return match ? match[1].trim() : '';
+}
+
 function parseAddress(content: string): string {
   const match = content.match(/^# (.+)/m);
   return match ? match[1].trim() : '';
@@ -276,6 +355,7 @@ export async function getProperty(slug: string): Promise<PropertyData | null> {
       priceGuide: details.priceGuide || '',
       campaignType: details.campaignType || '',
       agent: details.agent || '',
+      heroImage: parseHeroImage(content),
       checklist: parseChecklist(content),
       latestUpdate: parseLatestUpdate(content),
       analytics: parseAnalyticsTable(content),
@@ -283,6 +363,10 @@ export async function getProperty(slug: string): Promise<PropertyData | null> {
       offers: parseOffersTable(content),
       targets: parseWeeklyTargets(content),
       communications: parseCommunicationsTable(content),
+      feedback: parseFeedbackTable(content),
+      documents: parseDocumentsTable(content),
+      justListed: parseNearbyTable(content, '## Just Listed Nearby'),
+      justSold: parseNearbyTable(content, '## Just Sold Nearby'),
     };
   } catch {
     return null;

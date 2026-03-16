@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeInspectionFile } from '@/lib/markdown-loader';
+import { queueNotification } from '@/lib/notification-queue';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,14 +15,22 @@ export async function POST(request: NextRequest) {
     }
 
     const inspectionDate = date || new Date().toISOString().split('T')[0];
+    const g = Number(groups) || 0;
 
     const filePath = await writeInspectionFile(property, {
       date: inspectionDate,
       type,
-      groups: Number(groups) || 0,
+      groups: g,
       interested: Number(interested) || 0,
       interestLevel: interestLevel || '',
       notes: notes || '',
+    });
+
+    // Queue notification for vendor
+    await queueNotification(property, {
+      type: 'inspection_result',
+      title: `${type}: ${g} groups through (${interestLevel || 'TBC'})`,
+      data: { date: inspectionDate, type, groups: g, interested, interestLevel, notes },
     });
 
     return NextResponse.json({

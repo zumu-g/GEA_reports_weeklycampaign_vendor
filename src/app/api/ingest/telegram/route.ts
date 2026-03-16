@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveProperty } from '@/lib/property-registry';
 import { writeInspectionFile } from '@/lib/markdown-loader';
+import { queueNotification } from '@/lib/notification-queue';
 
 // Parses telegram shorthand:
 // "85 Centenary | open | 3 groups | 1 interested | felt overpriced"
@@ -119,6 +120,13 @@ export async function POST(request: NextRequest) {
       interested: parsed.interested,
       interestLevel: parsed.interestLevel,
       notes: parsed.notes,
+    });
+
+    // Queue notification for vendor
+    await queueNotification(property.slug, {
+      type: 'inspection_result',
+      title: `${parsed.type}: ${parsed.groups} groups through`,
+      data: { date: today, type: parsed.type, groups: parsed.groups, interested: parsed.interested, interestLevel: parsed.interestLevel, notes: parsed.notes },
     });
 
     return NextResponse.json({
