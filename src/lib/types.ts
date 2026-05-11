@@ -22,7 +22,38 @@ export interface VendorReport {
   // Campaign info
   campaignType: string;
   daysOnMarket: number;
+  // Draft workflow
+  status?: 'draft' | 'approved';
   // Chat messages
+  messages: ChatMessage[];
+}
+
+export interface WeeklyDraft {
+  id: string;
+  propertySlug: string;
+  weekEnding: string;
+  status: 'draft' | 'approved';
+  approvedAt: string | null;
+  propertyAddress: string;
+  vendorName: string;
+  agent: string;
+  askingPrice: string;
+  campaignType: string;
+  listingDate: string;
+  daysOnMarket: number;
+  reaViews: number;
+  reaEnquiries: number;
+  reaSaves: number;
+  reaSearchAppearances: number;
+  domainViews: number;
+  domainEnquiries: number;
+  domainSaves: number;
+  domainSearchAppearances: number;
+  openHomeAttendees: number;
+  privateInspections: number;
+  agentCommentary: string;
+  newsArticles: NewsArticle[];
+  generatedNarrative: GeneratedReportNarrative | null;
   messages: ChatMessage[];
 }
 
@@ -42,4 +73,68 @@ export interface WeeklySummary {
   totalEnquiries: number;
   totalOpenHomeAttendees: number;
   totalPrivateInspections: number;
+}
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  url: string;
+  note: string;
+}
+
+export interface GenerateReportInput {
+  propertyAddress: string;
+  vendorName: string;
+  agent: string;
+  weekEnding: string;
+  campaignType: string;
+  askingPrice: string;
+  daysOnMarket: string;
+  listingDate: string;
+  // REA actuals
+  reaViews: string;
+  reaEnquiries: string;
+  reaSaves: string;
+  reaSearchAppearances: string;
+  reaFileContent: string;
+  // REA targets
+  reaViewsTarget: string;
+  reaEnquiriesTarget: string;
+  reaSavesTarget: string;
+  // Domain actuals
+  domainViews: string;
+  domainEnquiries: string;
+  domainSaves: string;
+  domainSearchAppearances: string;
+  domainFileContent: string;
+  // Domain targets
+  domainViewsTarget: string;
+  domainEnquiriesTarget: string;
+  domainSavesTarget: string;
+  // Inspections
+  openHomeAttendees: string;
+  privateInspections: string;
+  openHomeAttendeesTarget: string;
+  inspectionNotes: string;
+  agentCommentary: string;
+  newsArticles: NewsArticle[];
+}
+
+export interface StatRow {
+  label: string;
+  actual: number;
+  target: number | null;
+}
+
+export interface GeneratedReportNarrative {
+  greeting: string;
+  openingParagraph: string;
+  performanceHighlights: string[];
+  statsTable: StatRow[];
+  portalAnalysis: string;
+  inspectionSummary: string;
+  marketContext: string;
+  agentInsight: string;
+  nextSteps: string;
+  closing: string;
 }
