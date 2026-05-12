@@ -9,6 +9,70 @@ type StringInputKey = {
   [K in keyof GenerateReportInput]: GenerateReportInput[K] extends string ? K : never;
 }[keyof GenerateReportInput];
 
+// ─── CSV stat parser ─────────────────────────────────────────────────────────
+
+interface ParsedStats {
+  views: number | null;
+  enquiries: number | null;
+  saves: number | null;
+  searchAppearances: number | null;
+}
+
+function splitCSVRow(row: string): string[] {
+  const cells: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (const char of row) {
+    if (char === '"') { inQuotes = !inQuotes; continue; }
+    if (char === "," && !inQuotes) { cells.push(current.trim()); current = ""; continue; }
+    current += char;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+function parseNum(s: string): number | null {
+  const n = parseInt(s.replace(/[,\s]/g, ""), 10);
+  return isNaN(n) ? null : n;
+}
+
+function parseCSVStats(text: string): ParsedStats {
+  const rows = text.split(/\r?\n/).map((r) => splitCSVRow(r));
+  // Find the first row with multiple non-empty cells (the header)
+  const headerIdx = rows.findIndex((r) => r.filter(Boolean).length > 1);
+  if (headerIdx === -1) return { views: null, enquiries: null, saves: null, searchAppearances: null };
+
+  const headers = rows[headerIdx].map((h) => h.toLowerCase());
+
+  const colOf = (pattern: RegExp) => {
+    const idx = headers.findIndex((h) => pattern.test(h));
+    return idx === -1 ? null : idx;
+  };
+
+  // Column matching — broad patterns to handle REA/Domain naming variations
+  const viewsCol      = colOf(/^(?!.*search).*view/);
+  const enquiriesCol  = colOf(/enquir/);
+  const savesCol      = colOf(/save|shortlist|favourit/);
+  const searchCol     = colOf(/search.*(appear|impress)/);
+
+  const dataRows = rows.slice(headerIdx + 1).filter((r) => r.some(Boolean));
+  if (dataRows.length === 0) return { views: null, enquiries: null, saves: null, searchAppearances: null };
+
+  // Prefer a row explicitly labeled "Total" or "All time"; otherwise use last row
+  const totalRow =
+    dataRows.find((r) => /^total$|^all.?time$/i.test(r[0] ?? "")) ??
+    dataRows[dataRows.length - 1];
+
+  const pick = (col: number | null) => (col !== null ? parseNum(totalRow[col] ?? "") : null);
+
+  return {
+    views:             pick(viewsCol),
+    enquiries:         pick(enquiriesCol),
+    saves:             pick(savesCol),
+    searchAppearances: pick(searchCol),
+  };
+}
+
 // ─── Wizard state ───────────────────────────────────────────────────────────
 
 const BLANK_STATE: GenerateReportInput = {
@@ -154,14 +218,51 @@ function StatBlock({
   const name = portal === "rea" ? "realestate.com.au" : "domain.com.au";
   const dotColour = portal === "rea" ? "bg-red-500" : "bg-green-600";
   const [extracting, setExtracting] = useState(false);
+  const [extractingLabel, setExtractingLabel] = useState("Extracting PDF…");
   const [fileError, setFileError] = useState<string | null>(null);
+  const [parsedCount, setParsedCount] = useState<number | null>(null);
+
+  const parseAndFill = async (text: string) => {
+    setExtractingLabel("Parsing stats…");
+    setExtracting(true);
+    try {
+      const res = await fetch("/api/parse-stats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, portal }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Parse failed");
+
+      const fields: [string, number | null][] = [
+        [`${prefix}Views`, json.views],
+        [`${prefix}Enquiries`, json.enquiries],
+        [`${prefix}Saves`, json.saves],
+        [`${prefix}SearchAppearances`, json.searchAppearances],
+      ];
+      let count = 0;
+      for (const [key, val] of fields) {
+        if (val !== null) {
+          onUpdate(key as StringInputKey, String(val));
+          count++;
+        }
+      }
+      setParsedCount(count);
+    } catch {
+      setParsedCount(0);
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileError(null);
+    setParsedCount(null);
 
     if (file.type === "application/pdf") {
+      setExtractingLabel("Extracting PDF…");
       setExtracting(true);
       try {
         const form = new FormData();
@@ -170,14 +271,33 @@ function StatBlock({
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "Extraction failed");
         onFileLoad(json.text);
+        setExtracting(false);
+        await parseAndFill(json.text);
       } catch (err) {
         setFileError(err instanceof Error ? err.message : "Could not extract PDF text");
-      } finally {
         setExtracting(false);
       }
     } else {
       const reader = new FileReader();
-      reader.onload = (evt) => onFileLoad(evt.target?.result as string);
+      reader.onload = (evt) => {
+        const text = evt.target?.result as string;
+        onFileLoad(text);
+        const result = parseCSVStats(text);
+        const fields: [string, number | null][] = [
+          [`${prefix}Views`, result.views],
+          [`${prefix}Enquiries`, result.enquiries],
+          [`${prefix}Saves`, result.saves],
+          [`${prefix}SearchAppearances`, result.searchAppearances],
+        ];
+        let count = 0;
+        for (const [key, val] of fields) {
+          if (val !== null) {
+            onUpdate(key as StringInputKey, String(val));
+            count++;
+          }
+        }
+        setParsedCount(count);
+      };
       reader.readAsText(file);
     }
   };
@@ -196,7 +316,7 @@ function StatBlock({
             disabled={extracting}
             className="font-body text-xs text-accent hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-wait"
           >
-            {extracting ? "Extracting PDF…" : "Upload report file (optional)"}
+            {extracting ? extractingLabel : "Upload report file (optional)"}
           </button>
           <input
             ref={fileRef}
@@ -214,9 +334,17 @@ function StatBlock({
         </div>
       )}
 
-      {!fileError && (data as unknown as Record<string, string>)[`${prefix}FileContent`] && (
-        <div className="bg-success/10 border border-success/20 text-success rounded-lg px-3 py-2 text-xs font-body font-medium">
-          File loaded — MiniMax will extract data from it automatically.
+      {!fileError && (data as unknown as Record<string, string>)[`${prefix}FileContent`] && parsedCount !== null && (
+        <div className={`rounded-lg px-3 py-2 text-xs font-body font-medium ${
+          parsedCount === 0
+            ? "bg-warning/10 border border-warning/20 text-warning"
+            : "bg-success/10 border border-success/20 text-success"
+        }`}>
+          {parsedCount === 0
+            ? "File loaded but stats couldn't be extracted — please enter manually."
+            : parsedCount === 4
+            ? "4 stats extracted from file — review the fields above."
+            : `${parsedCount} of 4 stats extracted — check and fill any missing fields.`}
         </div>
       )}
 
