@@ -28,12 +28,12 @@ export default function InspectionHistory({ inspections }: InspectionHistoryProp
   return (
     <div className="mb-8">
       <h2 className="font-display text-xl font-medium text-foreground mb-4">
-        Inspection History
+        Inspections
       </h2>
 
-      <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
+      <ul className="bg-card-bg rounded border border-border overflow-hidden">
         {inspections.map((inspection, i) => (
-          <div
+          <li
             key={i}
             className="px-6 py-4 border-b border-border last:border-0 flex justify-between items-center gap-4"
           >
@@ -59,7 +59,7 @@ export default function InspectionHistory({ inspections }: InspectionHistoryProp
                 </span>
               </div>
               {inspection.notes && (
-                <p className="font-body text-xs text-muted leading-snug mt-0.5 truncate max-w-xs">
+                <p className="font-body text-xs text-muted leading-snug mt-0.5 line-clamp-2">
                   {inspection.notes}
                 </p>
               )}
@@ -71,12 +71,12 @@ export default function InspectionHistory({ inspections }: InspectionHistoryProp
                 {inspection.groups}
               </p>
               <p className="font-body text-xs text-muted mt-0.5">
-                {inspection.groups === 1 ? "group" : "groups"}
+                {inspection.groups === 1 ? "buyer group" : "buyer groups"}
               </p>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

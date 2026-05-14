@@ -72,7 +72,7 @@ export default async function ReportPage({ params }: PageProps) {
         </Link>
 
         {/* Property hero card */}
-        <div className="bg-primary text-white rounded-[18px] p-8 mb-8">
+        <div className="bg-primary text-white rounded p-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
             <div className="min-w-0">
               <div className="flex items-center gap-3 mb-2">
@@ -176,7 +176,7 @@ export default async function ReportPage({ params }: PageProps) {
           <h2 className="font-display text-xl font-medium text-foreground mb-4">
             Inspections Summary
           </h2>
-          <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] p-6">
+          <div className="bg-card-bg rounded border border-border p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-border">
               <div className="pb-6 md:pb-0 md:pr-8">
                 <p className="font-mono text-3xl font-medium text-foreground tabular-nums">

@@ -14,7 +14,7 @@ interface PortalPanelProps {
 function PortalPanel({ name, dotColor, borderColor, stats }: PortalPanelProps) {
   return (
     <div
-      className={`bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden ${borderColor}`}
+      className={`bg-card-bg rounded border border-border overflow-hidden ${borderColor}`}
     >
       {/* Coloured top strip */}
       <div className={`h-0.5 w-full ${borderColor === "border-t-2 border-red-500" ? "bg-red-500" : "bg-emerald-500"}`} />

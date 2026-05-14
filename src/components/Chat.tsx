@@ -45,7 +45,7 @@ export default function Chat({ messages: initialMessages, vendorName }: ChatProp
     <div className="fixed bottom-6 right-6 z-50">
       {/* ── Chat panel ── */}
       {isOpen && (
-        <div className="w-96 max-h-[500px] bg-card-bg rounded-[18px] border border-border shadow-[0_12px_32px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden mb-4">
+        <div className="w-96 max-h-[500px] bg-card-bg rounded border border-border shadow-[0_12px_32px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden mb-4">
 
           {/* Header */}
           <div className="bg-primary px-5 py-4 flex items-center justify-between flex-shrink-0">

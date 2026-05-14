@@ -8,7 +8,7 @@ export default function ChecklistSection({ checklist }: ChecklistSectionProps) {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] p-6 mb-8">
+    <div className="bg-card-bg rounded border border-border p-6 mb-8">
       {/* Heading row */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-display text-xl font-medium text-foreground">

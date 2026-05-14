@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@300;400;500;600&family=Fira+Mono:wght@400;500&display=swap");
 
 @import "tailwindcss";
 
@@ -9,7 +9,7 @@
   --primary-light: #2C2823;
   --surface:       #F2EEE8;
   --border:        #E0DBD4;
-  --muted:         #8B8580;
+  --muted:         #716D69;
   --accent:        #C8A96E;
   --accent-light:  #E8D4A8;
   --card-bg:       #FFFFFF;
@@ -17,9 +17,9 @@
   --warning:       #B67A00;
   --danger:        #B64400;
 
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
-  --font-mono:    'IBM Plex Mono', monospace;
+  --font-display: 'Gloock', Georgia, serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    'Fira Mono', monospace;
 }
 
 @theme inline {
@@ -40,6 +40,21 @@
   --font-display: var(--font-display);
   --font-body:    var(--font-body);
   --font-mono:    var(--font-mono);
+
+  --animate-accent-expand: accent-expand 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  --animate-fade-up: fade-up 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes accent-expand {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 }
 
 body {
@@ -47,4 +62,33 @@ body {
   color: var(--foreground);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #fff !important;
+    color: #1A1814 !important;
+  }
+
+  /* Hide interactive / nav elements */
+  .print\:hidden,
+  [data-print-hidden] {
+    display: none !important;
+  }
+
+  /* Avoid breaking cards mid-page */
+  section {
+    break-inside: avoid;
+  }
+
+  /* Remove sticky header */
+  header {
+    position: static !important;
+    box-shadow: none !important;
+  }
 }

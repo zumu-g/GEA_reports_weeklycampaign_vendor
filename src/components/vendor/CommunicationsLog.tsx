@@ -21,8 +21,9 @@ export default function CommunicationsLog({ communications }: CommunicationsLogP
     return (
       <div className="mb-8">
         <h2 className="font-display text-xl font-medium text-foreground mb-4">Communications</h2>
-        <div className="bg-card-bg rounded-[18px] border border-border px-6 py-8 text-center">
-          <p className="font-body text-sm text-muted">No communications logged yet.</p>
+        <div className="bg-card-bg rounded border border-border px-6 py-8 text-center">
+          <p className="font-body text-sm text-foreground mb-1">No messages yet.</p>
+          <p className="font-body text-xs text-muted">Your agent will post updates here after each inspection and when there is news on your sale.</p>
         </div>
       </div>
     );
@@ -31,9 +32,9 @@ export default function CommunicationsLog({ communications }: CommunicationsLogP
   return (
     <div className="mb-8">
       <h2 className="font-display text-xl font-medium text-foreground mb-4">Communications</h2>
-      <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
+      <ul className="bg-card-bg rounded border border-border overflow-hidden">
         {communications.map((comm, i) => (
-          <div
+          <li
             key={i}
             className="px-5 py-4 border-b border-border last:border-0 flex gap-4 items-start"
           >
@@ -50,9 +51,9 @@ export default function CommunicationsLog({ communications }: CommunicationsLogP
               </div>
               <p className="font-body text-sm text-foreground leading-snug">{comm.summary}</p>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

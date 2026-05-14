@@ -458,7 +458,7 @@ function NarrativePreview({
         </button>
       </div>
 
-      <div className="bg-card-bg border border-border rounded-[18px] p-7 space-y-5">
+      <div className="bg-card-bg border border-border rounded p-7 space-y-5">
         <div>
           <p className="font-body text-[10px] font-semibold uppercase tracking-widest text-muted/60 mb-1">Greeting</p>
           <p className="font-display text-base font-medium text-foreground leading-relaxed">{narrative.greeting}</p>
@@ -734,7 +734,7 @@ export default function ReportWizard({
     <div className="max-w-2xl mx-auto">
       <StepIndicator current={step} />
 
-      <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] p-8">
+      <div className="bg-card-bg rounded border border-border p-8">
 
         {/* ── Step 1: Property ── */}
         {step === 1 && (

@@ -6,6 +6,12 @@ const PROPERTIES_DIR = process.env.PROPERTIES_DIR || '/Users/stuartgrant_mbp13/L
 
 // --- Types ---
 
+export interface NewsItem {
+  title: string;
+  url: string;
+  summary: string;
+}
+
 export interface PropertyData {
   slug: string;
   address: string;
@@ -15,11 +21,13 @@ export interface PropertyData {
   priceGuide: string;
   campaignType: string;
   agent: string;
+  calendarId: string;
   checklist: { task: string; done: boolean }[];
   latestUpdate: string;
   analytics: AnalyticsRow[];
   inspections: InspectionRow[];
   communications: CommunicationRow[];
+  news: NewsItem[];
 }
 
 export interface AnalyticsRow {
@@ -82,6 +90,7 @@ function parsePropertyDetails(content: string): Partial<PropertyData> {
     priceGuide: get('Price Guide'),
     campaignType: get('Campaign Type'),
     agent: get('Agent'),
+    calendarId: get('Calendar ID'),
   };
 }
 
@@ -180,6 +189,19 @@ function parseCommunicationsTable(content: string): CommunicationRow[] {
     }));
 }
 
+function parseMarketNews(content: string): NewsItem[] {
+  const parts = content.split(/^## Market News/m);
+  if (parts.length < 2) return [];
+  const section = parts[1].split(/^## /m)[0];
+  const items: NewsItem[] = [];
+  const regex = /^-\s+\[([^\]]+)\]\(([^)]+)\)\s+[—–]\s+(.+)$/gm;
+  let match;
+  while ((match = regex.exec(section)) !== null) {
+    items.push({ title: match[1].trim(), url: match[2].trim(), summary: match[3].trim() });
+  }
+  return items;
+}
+
 function parseAddress(content: string): string {
   const match = content.match(/^# (.+)/m);
   return match ? match[1].trim() : '';
@@ -231,11 +253,13 @@ export async function getProperty(slug: string): Promise<PropertyData | null> {
       priceGuide: details.priceGuide || '',
       campaignType: details.campaignType || '',
       agent: details.agent || '',
+      calendarId: details.calendarId || '',
       checklist: parseChecklist(content),
       latestUpdate: parseLatestUpdate(content),
       analytics: parseAnalyticsTable(content),
       inspections: parseInspectionsTable(content),
       communications: parseCommunicationsTable(content),
+      news: parseMarketNews(content),
     };
   } catch {
     return null;
@@ -293,6 +317,81 @@ export async function getPropertyInspections(slug: string): Promise<InspectionDe
   }
 
   return results.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// --- Property Creator ---
+
+export async function createPropertyFolder(
+  slug: string,
+  details: {
+    address: string;
+    owner: string;
+    contact: string;
+    listed: string;
+    priceGuide: string;
+    campaignType: string;
+  }
+): Promise<void> {
+  const propertyDir = path.join(PROPERTIES_DIR, slug);
+
+  // Create subdirectories
+  await fs.mkdir(path.join(propertyDir, 'analytics'), { recursive: true });
+  await fs.mkdir(path.join(propertyDir, 'inspections'), { recursive: true });
+  await fs.mkdir(path.join(propertyDir, 'communications'), { recursive: true });
+
+  // Write .gitkeep placeholders
+  for (const sub of ['analytics', 'inspections', 'communications']) {
+    const keepFile = path.join(propertyDir, sub, '.gitkeep');
+    try { await fs.access(keepFile); } catch { await fs.writeFile(keepFile, '', 'utf-8'); }
+  }
+
+  const today = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const content = `# ${details.address}
+
+## Property Details
+- **Owner:** ${details.owner}
+- **Contact:** ${details.contact}
+- **Listed:** ${details.listed}
+- **Price Guide:** ${details.priceGuide}
+- **Campaign Type:** ${details.campaignType}
+- **Agent:** Stuart Grant
+- **Calendar ID:**
+
+## Campaign Checklist
+- [ ] Professional photography completed
+- [ ] Floor plan drafted
+- [ ] Listing live on realestate.com.au
+- [ ] Listing live on domain.com.au
+- [ ] First open home scheduled
+- [ ] Signboard installed
+- [ ] Social media campaign launched
+- [ ] Brochure printed and delivered
+- [ ] Contract of sale prepared
+- [ ] Section 32 / Vendor Statement ready
+- [ ] Agency authority signed
+
+## Latest Update
+**${today}:** Portal created. Awaiting first weekly analytics.
+
+## Analytics Summary
+| Week Ending | REA Views | REA Enquiries | REA Saves | Domain Views | Domain Enquiries | Domain Saves |
+|-------------|-----------|---------------|-----------|--------------|------------------|--------------|
+|             |           |               |           |              |                  |              |
+
+## Inspection History
+| Date | Type | Groups | Interest Level | Notes |
+|------|------|--------|----------------|-------|
+|      |      |        |                |       |
+
+## Communications Log
+| Date | Type | Summary |
+|------|------|---------|
+| ${today} | Portal | Client portal created |
+`;
+
+  const propertyFile = path.join(propertyDir, 'PROPERTY.md');
+  await fs.writeFile(propertyFile, content, 'utf-8');
 }
 
 // --- Writers ---

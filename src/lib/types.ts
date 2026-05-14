@@ -126,6 +126,45 @@ export interface StatRow {
   target: number | null;
 }
 
+// --- Rental types ---
+
+export interface RentalAnalyticsRow {
+  weekEnding: string;
+  reaViews: number;
+  reaEnquiries: number;
+  reaSaves: number;
+  domainViews: number;
+  domainEnquiries: number;
+  domainSaves: number;
+  applications: number;
+}
+
+export interface RentalGenerateInput {
+  propertyAddress: string;
+  landlordName: string;
+  agent: string;
+  weekEnding: string;
+  leaseType: string;
+  rentPw: string;
+  daysListed: string;
+  listedDate: string;
+  reaViews: string;
+  reaEnquiries: string;
+  reaSaves: string;
+  domainViews: string;
+  domainEnquiries: string;
+  domainSaves: string;
+  applications: string;
+  applicationNotes: string;
+  openHomeAttendees: string;
+  privateInspections: string;
+  inspectionNotes: string;
+  agentCommentary: string;
+  newsArticles: NewsArticle[];
+}
+
+// --- End rental types ---
+
 export interface GeneratedReportNarrative {
   greeting: string;
   openingParagraph: string;

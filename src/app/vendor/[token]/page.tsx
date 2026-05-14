@@ -3,13 +3,17 @@ import { getPropertySlugForToken } from '@/lib/vendor-tokens';
 import { getProperty } from '@/lib/markdown-loader';
 import VendorHeader from '@/components/vendor/VendorHeader';
 import CampaignChecklist from '@/components/vendor/CampaignChecklist';
+import AppointmentCalendar from '@/components/vendor/AppointmentCalendar';
+import CampaignTimeline from '@/components/vendor/CampaignTimeline';
 import CommunicationsLog from '@/components/vendor/CommunicationsLog';
+import MarketNews from '@/components/vendor/MarketNews';
+import DownloadButton from '@/components/vendor/DownloadButton';
 import InspectionHistory from '@/components/InspectionHistory';
-import StatCard from '@/components/StatCard';
+import DailyQuote from '@/components/vendor/DailyQuote';
+import { getDailyQuote } from '@/lib/quotes';
 
 function calcDaysOnMarket(listed: string): number {
   if (!listed) return 0;
-  // Handle formats like "15 Feb 2026" or "2026-02-15"
   const parsed = new Date(listed);
   if (isNaN(parsed.getTime())) return 0;
   return Math.max(0, Math.floor((Date.now() - parsed.getTime()) / 86_400_000));
@@ -45,153 +49,219 @@ export default async function VendorDashboard({
   const totals = sumAnalytics(property.analytics);
   const latestAnalytics = property.analytics[0] ?? null;
 
+  const reportDate = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dailyQuote = getDailyQuote();
+
   return (
     <div className="min-h-screen bg-background">
       <VendorHeader address={property.address} daysOnMarket={daysOnMarket} />
 
-      <main className="max-w-2xl mx-auto px-5 py-8">
+      {/* Print-only header */}
+      <div className="hidden print:block px-5 pt-6 pb-6 border-b border-border max-w-2xl mx-auto">
+        <div className="flex items-start justify-between mb-4">
+          <p className="font-display text-lg font-medium text-foreground">Grant Estate Agency</p>
+          <p className="font-body text-xs text-muted">{reportDate}</p>
+        </div>
+        <p className="font-display text-2xl font-medium text-foreground leading-tight mb-1">{property.address}</p>
+        {property.owner && (
+          <p className="font-body text-xs text-muted mb-3">For {property.owner} · Private &amp; Confidential</p>
+        )}
+        <div className="flex gap-8 mt-3 pt-3 border-t border-border">
+          <div>
+            <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-0.5">Price Guide</p>
+            <p className="font-body text-sm font-medium text-foreground">{property.priceGuide || 'TBC'}</p>
+          </div>
+          <div>
+            <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-0.5">Agent</p>
+            <p className="font-body text-sm font-medium text-foreground">{property.agent || 'Stuart Grant'}</p>
+          </div>
+          <div>
+            <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-0.5">Campaign</p>
+            <p className="font-body text-sm font-medium text-foreground">{property.campaignType}</p>
+          </div>
+          <div>
+            <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-0.5">Listed</p>
+            <p className="font-body text-sm font-medium text-foreground">{property.listed}</p>
+          </div>
+        </div>
+      </div>
 
-        {/* Hero */}
-        <section className="mb-8">
-          <h1 className="font-display text-2xl font-medium text-foreground mb-1 leading-tight">
-            {property.address}
-          </h1>
-          <p className="font-body text-sm text-muted mb-4">
+      <main className="max-w-2xl mx-auto px-5 pt-10 pb-16">
+
+        {/* ── Hero ─────────────────────────────────────────── */}
+        <section className="mb-12">
+          <div className="flex items-start justify-between gap-4 mb-1">
+            <h1 className="font-display text-3xl font-medium text-foreground leading-tight">
+              {property.address}
+            </h1>
+            <div className="flex-shrink-0 pt-1">
+              <DownloadButton />
+            </div>
+          </div>
+          {property.owner && (
+            <p className="font-body text-xs text-muted mb-1">For {property.owner} · Private &amp; Confidential</p>
+          )}
+          <p className="font-body text-sm text-muted mb-8">
             {property.campaignType} · Listed {property.listed}
           </p>
 
-          <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] p-5 flex flex-wrap gap-5">
+          {/* Key facts row */}
+          <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
             <div>
-              <p className="font-body text-xs text-muted mb-0.5">Price Guide</p>
-              <p className="font-display text-lg font-medium text-foreground">{property.priceGuide || 'TBC'}</p>
+              <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-1">Price Guide</p>
+              <p className="font-display text-xl font-medium text-foreground">{property.priceGuide || 'TBC'}</p>
             </div>
-            <div className="w-px bg-border self-stretch" />
             <div>
-              <p className="font-body text-xs text-muted mb-0.5">Agent</p>
+              <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-1">Agent</p>
               <p className="font-body text-sm font-medium text-foreground">{property.agent || 'Stuart Grant'}</p>
             </div>
-            <div className="w-px bg-border self-stretch" />
             <div>
-              <p className="font-body text-xs text-muted mb-0.5">Campaign</p>
-              <p className="font-body text-sm font-medium text-foreground">{property.campaignType || 'Private Sale'}</p>
+              <p className="font-body text-[10px] text-muted uppercase tracking-widest mb-1">Days on market</p>
+              <p className="font-mono text-sm font-medium text-foreground tabular-nums">{daysOnMarket > 0 ? daysOnMarket : '—'}</p>
             </div>
           </div>
         </section>
 
-        {/* Latest Update */}
+        {/* ── Latest Update ────────────────────────────────── */}
         {property.latestUpdate && (
-          <section className="mb-8">
-            <div className="bg-accent/10 border border-accent/30 rounded-[14px] px-5 py-4">
-              <p className="font-body text-xs text-accent font-medium mb-1 uppercase tracking-wide">Latest Update</p>
-              <p className="font-body text-sm text-foreground leading-relaxed">{property.latestUpdate}</p>
+          <section className="mb-10" data-tour="latest-update">
+            <div className="bg-accent/12 rounded-2xl px-5 py-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-body text-[10px] text-accent font-semibold uppercase tracking-widest">Update from Your Agent</p>
+                <p className="font-body text-[10px] text-muted">{reportDate}</p>
+              </div>
+              <p className="font-body text-base text-foreground leading-relaxed">{property.latestUpdate}</p>
+              <p className="font-body text-xs text-muted mt-3">{property.agent || 'Stuart Grant'}</p>
             </div>
           </section>
         )}
 
-        {/* Campaign Checklist */}
-        {property.checklist.length > 0 && (
-          <CampaignChecklist items={property.checklist} />
-        )}
-
-        {/* Analytics */}
-        {property.analytics.length > 0 && (
-          <section className="mb-8">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="font-display text-xl font-medium text-foreground">Campaign Analytics</h2>
-              {latestAnalytics && (
-                <p className="font-body text-xs text-muted">w/e {latestAnalytics.weekEnding}</p>
-              )}
-            </div>
-
-            {/* Total views across both portals */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              <StatCard
-                label="Total Views"
-                value={totals.reaViews + totals.domainViews}
-                subtitle="REA + Domain"
-              />
-              <StatCard
-                label="Enquiries"
-                value={totals.reaEnquiries + totals.domainEnquiries}
-              />
-              <StatCard
-                label="Saves"
-                value={totals.reaSaves + totals.domainSaves}
-              />
-            </div>
-
-            {/* Per-portal breakdown */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
-                <div className="h-0.5 w-full bg-red-500" />
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                    <span className="font-body text-sm font-semibold text-foreground">realestate.com.au</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: 'Views', value: totals.reaViews },
-                      { label: 'Enquiries', value: totals.reaEnquiries },
-                      { label: 'Saves', value: totals.reaSaves },
-                    ].map(s => (
-                      <div key={s.label} className="bg-background rounded-xl p-3">
-                        <p className="font-mono text-xl font-medium tabular-nums text-foreground">{s.value.toLocaleString()}</p>
-                        <p className="font-body text-xs text-muted mt-0.5">{s.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
-                <div className="h-0.5 w-full bg-emerald-500" />
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                    <span className="font-body text-sm font-semibold text-foreground">domain.com.au</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: 'Views', value: totals.domainViews },
-                      { label: 'Enquiries', value: totals.domainEnquiries },
-                      { label: 'Saves', value: totals.domainSaves },
-                    ].map(s => (
-                      <div key={s.label} className="bg-background rounded-xl p-3">
-                        <p className="font-mono text-xl font-medium tabular-nums text-foreground">{s.value.toLocaleString()}</p>
-                        <p className="font-body text-xs text-muted mt-0.5">{s.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Inspection History */}
+        {/* ── Inspection History ───────────────────────────── */}
         {property.inspections.length > 0 && (
           <InspectionHistory inspections={property.inspections} />
         )}
 
         {property.inspections.length === 0 && (
-          <section className="mb-8">
+          <section className="mb-10">
             <h2 className="font-display text-xl font-medium text-foreground mb-4">Inspections</h2>
-            <div className="bg-card-bg rounded-[18px] border border-border px-6 py-8 text-center">
-              <p className="font-body text-sm text-muted">No inspections logged yet.</p>
+            <div className="bg-card-bg rounded border border-border px-6 py-10 text-center">
+              <p className="font-body text-sm text-foreground mb-1">No inspections scheduled yet.</p>
+              <p className="font-body text-xs text-muted">Your agent will update this as inspections are confirmed.</p>
             </div>
           </section>
         )}
 
-        {/* Communications Log */}
+        {/* ── Upcoming Appointments ────────────────────────── */}
+        <div data-tour="appointments">
+          <AppointmentCalendar calendarId={property.calendarId} />
+        </div>
+
+        {/* ── Campaign Analytics ───────────────────────────── */}
+        {property.analytics.length > 0 && (
+          <section className="mb-12" data-tour="analytics">
+            <div className="flex items-baseline justify-between mb-6">
+              <h2 className="font-display text-xl font-medium text-foreground">Online Reach</h2>
+              {latestAnalytics && (
+                <p className="font-body text-xs text-muted">Week ending {latestAnalytics.weekEnding}</p>
+              )}
+            </div>
+
+            {/* Campaign totals */}
+            <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-8 pb-8 border-b border-border">
+              <div>
+                <p className="font-mono text-3xl sm:text-4xl font-medium text-foreground tabular-nums leading-none">
+                  {(totals.reaViews + totals.domainViews).toLocaleString()}
+                </p>
+                <p className="font-body text-xs text-muted mt-2">People who viewed your listing</p>
+                <p className="font-body text-[10px] text-muted/60 mt-0.5 hidden sm:block">realestate.com.au + domain.com.au</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-medium text-foreground tabular-nums leading-none">
+                  {(totals.reaEnquiries + totals.domainEnquiries).toLocaleString()}
+                </p>
+                <p className="font-body text-xs text-muted mt-2">Buyer enquiries</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-medium text-foreground tabular-nums leading-none">
+                  {(totals.reaSaves + totals.domainSaves).toLocaleString()}
+                </p>
+                <p className="font-body text-xs text-muted mt-2">Added to watchlists</p>
+              </div>
+            </div>
+
+            {/* Per-portal breakdown — no nested stat boxes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                {
+                  name: 'realestate.com.au',
+                  color: 'bg-red-500',
+                  stats: [
+                    { label: 'Views', value: totals.reaViews },
+                    { label: 'Enquiries', value: totals.reaEnquiries },
+                    { label: 'Watchlisted', value: totals.reaSaves },
+                  ],
+                },
+                {
+                  name: 'domain.com.au',
+                  color: 'bg-emerald-500',
+                  stats: [
+                    { label: 'Views', value: totals.domainViews },
+                    { label: 'Enquiries', value: totals.domainEnquiries },
+                    { label: 'Watchlisted', value: totals.domainSaves },
+                  ],
+                },
+              ].map(portal => (
+                <div key={portal.name} className="bg-card-bg rounded border border-border overflow-hidden">
+                  <div className={`h-0.5 w-full ${portal.color}`} />
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-5">
+                      <span className={`w-2 h-2 rounded-full ${portal.color} flex-shrink-0`} />
+                      <span className="font-body text-sm font-semibold text-foreground">{portal.name}</span>
+                    </div>
+                    <div className="space-y-0">
+                      {portal.stats.map((s, i) => (
+                        <div
+                          key={s.label}
+                          className={`flex items-baseline justify-between py-3 ${i > 0 ? 'border-t border-border' : ''}`}
+                        >
+                          <p className="font-body text-sm text-muted">{s.label}</p>
+                          <p className="font-mono text-lg font-medium tabular-nums text-foreground">{s.value.toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── What's Next ──────────────────────────────────── */}
+        <CampaignTimeline slug={property.slug} />
+
+        {/* ── Campaign Checklist ───────────────────────────── */}
+        {property.checklist.length > 0 && (
+          <div data-tour="checklist">
+            <CampaignChecklist items={property.checklist} />
+          </div>
+        )}
+
+        {/* ── Communications ───────────────────────────────── */}
         <CommunicationsLog communications={property.communications} />
 
-        {/* Footer */}
-        <footer className="pt-4 pb-8 text-center border-t border-border mt-4">
+        {/* ── Market News ──────────────────────────────────── */}
+        <MarketNews news={property.news} />
+
+        {/* ── Daily Quote ──────────────────────────────────── */}
+        <DailyQuote text={dailyQuote.text} author={dailyQuote.author} />
+
+        {/* ── Footer ───────────────────────────────────────── */}
+        <footer className="mt-12 pt-8 pb-4 text-center border-t border-border">
           <p className="font-body text-xs text-muted">
-            Grant Estate Agency · For {property.owner || 'the vendor'} · Private & Confidential
+            Grant Estate Agency · Private &amp; Confidential
           </p>
         </footer>
+
       </main>
     </div>
   );

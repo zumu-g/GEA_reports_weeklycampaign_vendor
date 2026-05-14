@@ -41,7 +41,7 @@ export default function GenerateDraftsButton({ weekEnding }: GenerateDraftsButto
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="h-9 rounded-full px-4 font-body text-sm font-medium bg-accent text-primary hover:bg-accent/80 disabled:opacity-50 disabled:cursor-wait transition-all whitespace-nowrap"
+        className="h-9 rounded px-4 font-body text-sm font-medium bg-accent text-primary hover:bg-accent/80 disabled:opacity-50 disabled:cursor-wait transition-all whitespace-nowrap"
       >
         {loading ? "Generating…" : "Generate This Week's Drafts"}
       </button>

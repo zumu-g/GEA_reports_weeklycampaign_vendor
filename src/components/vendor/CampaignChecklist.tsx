@@ -11,9 +11,9 @@ export default function CampaignChecklist({ items }: CampaignChecklistProps) {
   const completed = items.filter(i => i.done).length;
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-xl font-medium text-foreground">Campaign Checklist</h2>
+    <div className="mb-10">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-display text-xl font-medium text-foreground">Your Checklist</h2>
         <span className="font-mono text-sm text-muted tabular-nums">
           {completed}/{items.length}
         </span>
@@ -27,11 +27,11 @@ export default function CampaignChecklist({ items }: CampaignChecklistProps) {
         />
       </div>
 
-      <div className="bg-card-bg rounded-[18px] border border-border shadow-[0_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
+      <ul>
         {items.map((item, i) => (
-          <div
+          <li
             key={i}
-            className="px-5 py-3.5 border-b border-border last:border-0 flex items-center gap-3"
+            className="py-3 border-b border-border last:border-0 flex items-center gap-3"
           >
             <span
               className={`w-5 h-5 rounded-full border flex-shrink-0 flex items-center justify-center ${
@@ -41,7 +41,7 @@ export default function CampaignChecklist({ items }: CampaignChecklistProps) {
               }`}
             >
               {item.done && (
-                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                <svg aria-hidden="true" width="10" height="8" viewBox="0 0 10 8" fill="none">
                   <path
                     d="M1 4L3.5 6.5L9 1"
                     stroke="white"
@@ -59,9 +59,9 @@ export default function CampaignChecklist({ items }: CampaignChecklistProps) {
             >
               {item.task}
             </span>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

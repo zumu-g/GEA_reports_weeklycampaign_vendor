@@ -1,0 +1,50 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createPropertyFolder } from '@/lib/markdown-loader';
+import { assignToken } from '@/lib/vendor-tokens';
+
+function slugify(address: string): string {
+  return address
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { address, owner, contact, listed, priceGuide, campaignType } = body;
+
+    if (!address || !owner) {
+      return NextResponse.json({ error: 'address and owner are required' }, { status: 400 });
+    }
+
+    const slug = body.slug || slugify(address);
+
+    await createPropertyFolder(slug, { address, owner, contact: contact || '', listed: listed || '', priceGuide: priceGuide || 'TBC', campaignType: campaignType || 'Private Sale' });
+
+    const token = assignToken(slug, { ownerName: owner, ownerEmail: contact });
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const portalUrl = `${baseUrl}/vendor/${token}`;
+
+    // Send welcome email if notify route is available and owner has an email
+    if (contact && contact.includes('@')) {
+      try {
+        await fetch(`${baseUrl}/api/vendor/notify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, ownerName: owner, ownerEmail: contact, address, portalUrl }),
+        });
+      } catch {
+        // Non-fatal — email failure shouldn't block property creation
+      }
+    }
+
+    return NextResponse.json({ slug, token, portalUrl }, { status: 201 });
+  } catch (err) {
+    console.error('Property creation failed:', err);
+    return NextResponse.json({ error: 'Failed to create property' }, { status: 500 });
+  }
+}
