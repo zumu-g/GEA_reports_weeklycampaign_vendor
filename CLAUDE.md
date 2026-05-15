@@ -157,7 +157,7 @@ npm run build  # production build
 2. Click **Generate This Week's Drafts** — creates blank draft scaffolds for all properties
 3. Complete reports for each property, approve, share vendor links
 
-## Current Status (as of 14 May 2026)
+## Current Status (as of 15 May 2026)
 ### Done
 - Agent dashboard with portal performance stats + activity breakdown
 - Sales report wizard (7 steps) with CSV/PDF import and AI narrative generation
@@ -196,3 +196,4 @@ npm run build  # production build
 - Vendor tokens: `src/lib/vendor-tokens.json` | Rental tokens: `src/lib/rental-tokens.json` (both gitignored in prod)
 - Do NOT deploy to Vercel — use an alternative host
 - `.impeccable.md` at project root stores design context for the impeccable design skill
+- **Git state**: local main is 4 commits ahead of origin but the branches have diverged — origin has 5 old commits from a prior Apple HIG design direction that was superseded. Next session: force-push local to origin (`git push --force origin main`) to resolve, then all is clean.
