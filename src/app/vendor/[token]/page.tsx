@@ -10,6 +10,7 @@ import MarketNews from '@/components/vendor/MarketNews';
 import DownloadButton from '@/components/vendor/DownloadButton';
 import InspectionHistory from '@/components/InspectionHistory';
 import DailyQuote from '@/components/vendor/DailyQuote';
+import TrendBadge from '@/components/vendor/TrendBadge';
 import { getDailyQuote } from '@/lib/quotes';
 
 function calcDaysOnMarket(listed: string): number {
@@ -48,6 +49,7 @@ export default async function VendorDashboard({
   const daysOnMarket = calcDaysOnMarket(property.listed);
   const totals = sumAnalytics(property.analytics);
   const latestAnalytics = property.analytics[0] ?? null;
+  const previousAnalytics = property.analytics[1] ?? null;
 
   const reportDate = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
   const dailyQuote = getDailyQuote();
@@ -169,22 +171,46 @@ export default async function VendorDashboard({
             {/* Campaign totals */}
             <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-8 pb-8 border-b border-border">
               <div>
-                <p className="font-mono text-3xl sm:text-4xl font-medium text-foreground tabular-nums leading-none">
-                  {(totals.reaViews + totals.domainViews).toLocaleString()}
-                </p>
+                <div className="flex items-baseline gap-0">
+                  <p className="font-mono text-3xl sm:text-4xl font-medium text-foreground tabular-nums leading-none">
+                    {(totals.reaViews + totals.domainViews).toLocaleString()}
+                  </p>
+                  {latestAnalytics && previousAnalytics && (
+                    <TrendBadge
+                      current={latestAnalytics.reaViews + latestAnalytics.domainViews}
+                      previous={previousAnalytics.reaViews + previousAnalytics.domainViews}
+                    />
+                  )}
+                </div>
                 <p className="font-body text-xs text-muted mt-2">People who viewed your listing</p>
                 <p className="font-body text-[10px] text-muted/60 mt-0.5 hidden sm:block">realestate.com.au + domain.com.au</p>
               </div>
               <div>
-                <p className="font-mono text-2xl font-medium text-foreground tabular-nums leading-none">
-                  {(totals.reaEnquiries + totals.domainEnquiries).toLocaleString()}
-                </p>
+                <div className="flex items-baseline gap-0">
+                  <p className="font-mono text-2xl font-medium text-foreground tabular-nums leading-none">
+                    {(totals.reaEnquiries + totals.domainEnquiries).toLocaleString()}
+                  </p>
+                  {latestAnalytics && previousAnalytics && (
+                    <TrendBadge
+                      current={latestAnalytics.reaEnquiries + latestAnalytics.domainEnquiries}
+                      previous={previousAnalytics.reaEnquiries + previousAnalytics.domainEnquiries}
+                    />
+                  )}
+                </div>
                 <p className="font-body text-xs text-muted mt-2">Buyer enquiries</p>
               </div>
               <div>
-                <p className="font-mono text-2xl font-medium text-foreground tabular-nums leading-none">
-                  {(totals.reaSaves + totals.domainSaves).toLocaleString()}
-                </p>
+                <div className="flex items-baseline gap-0">
+                  <p className="font-mono text-2xl font-medium text-foreground tabular-nums leading-none">
+                    {(totals.reaSaves + totals.domainSaves).toLocaleString()}
+                  </p>
+                  {latestAnalytics && previousAnalytics && (
+                    <TrendBadge
+                      current={latestAnalytics.reaSaves + latestAnalytics.domainSaves}
+                      previous={previousAnalytics.reaSaves + previousAnalytics.domainSaves}
+                    />
+                  )}
+                </div>
                 <p className="font-body text-xs text-muted mt-2">Added to watchlists</p>
               </div>
             </div>
@@ -196,18 +222,48 @@ export default async function VendorDashboard({
                   name: 'realestate.com.au',
                   color: 'bg-red-500',
                   stats: [
-                    { label: 'Views', value: totals.reaViews },
-                    { label: 'Enquiries', value: totals.reaEnquiries },
-                    { label: 'Watchlisted', value: totals.reaSaves },
+                    {
+                      label: 'Views',
+                      value: totals.reaViews,
+                      current: latestAnalytics?.reaViews,
+                      previous: previousAnalytics?.reaViews,
+                    },
+                    {
+                      label: 'Enquiries',
+                      value: totals.reaEnquiries,
+                      current: latestAnalytics?.reaEnquiries,
+                      previous: previousAnalytics?.reaEnquiries,
+                    },
+                    {
+                      label: 'Watchlisted',
+                      value: totals.reaSaves,
+                      current: latestAnalytics?.reaSaves,
+                      previous: previousAnalytics?.reaSaves,
+                    },
                   ],
                 },
                 {
                   name: 'domain.com.au',
                   color: 'bg-emerald-500',
                   stats: [
-                    { label: 'Views', value: totals.domainViews },
-                    { label: 'Enquiries', value: totals.domainEnquiries },
-                    { label: 'Watchlisted', value: totals.domainSaves },
+                    {
+                      label: 'Views',
+                      value: totals.domainViews,
+                      current: latestAnalytics?.domainViews,
+                      previous: previousAnalytics?.domainViews,
+                    },
+                    {
+                      label: 'Enquiries',
+                      value: totals.domainEnquiries,
+                      current: latestAnalytics?.domainEnquiries,
+                      previous: previousAnalytics?.domainEnquiries,
+                    },
+                    {
+                      label: 'Watchlisted',
+                      value: totals.domainSaves,
+                      current: latestAnalytics?.domainSaves,
+                      previous: previousAnalytics?.domainSaves,
+                    },
                   ],
                 },
               ].map(portal => (
@@ -225,7 +281,12 @@ export default async function VendorDashboard({
                           className={`flex items-baseline justify-between py-3 ${i > 0 ? 'border-t border-border' : ''}`}
                         >
                           <p className="font-body text-sm text-muted">{s.label}</p>
-                          <p className="font-mono text-lg font-medium tabular-nums text-foreground">{s.value.toLocaleString()}</p>
+                          <div className="flex items-baseline">
+                            <p className="font-mono text-lg font-medium tabular-nums text-foreground">{s.value.toLocaleString()}</p>
+                            {s.current !== undefined && (
+                              <TrendBadge current={s.current} previous={s.previous} />
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
